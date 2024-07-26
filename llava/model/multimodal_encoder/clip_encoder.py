@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from transformers import CLIPVisionModel, CLIPImageProcessor, CLIPVisionConfig
+from transformers import CLIPVisionModel, CLIPImageProcessor, CLIPVisionConfig, AutoProcessor, Pix2StructForConditionalGeneration, Pix2StructProcessor, Pix2StructConfig
 
 
 class CLIPVisionTower(nn.Module):
@@ -19,40 +19,58 @@ class CLIPVisionTower(nn.Module):
         elif getattr(args, 'unfreeze_mm_vision_tower', False):
             self.load_model()
         else:
-            self.cfg_only = CLIPVisionConfig.from_pretrained(self.vision_tower_name)
+            self.cfg_only = Pix2StructConfig.from_pretrained(self.vision_tower_name)
 
     def load_model(self, device_map=None):
         if self.is_loaded:
             print('{} is already loaded, `load_model` called again, skipping.'.format(self.vision_tower_name))
             return
-
-        self.image_processor = CLIPImageProcessor.from_pretrained(self.vision_tower_name)
-        self.vision_tower = CLIPVisionModel.from_pretrained(self.vision_tower_name, device_map=device_map)
+        
+        self.vision_tower = Pix2StructForConditionalGeneration.from_pretrained(self.vision_tower_name)
+        if self.vision_tower_name == "nuua/ko-deplot":
+            self.image_processor = Pix2StructProcessor.from_pretrained(self.vision_tower_name)
+        elif self.vision_tower_name == "ybelkada/pix2struct-base":
+            self.image_processor = AutoProcessor.from_pretrained(self.vision_tower_name)
+            self.vision_tower.load_state_dict(torch.load("/home/work/ai-hub/pretrained_model/deplot/deplot_k.pt"))
+        
+        self.vision_tower = self.vision_tower.encoder
         self.vision_tower.requires_grad_(False)
 
         self.is_loaded = True
 
     def feature_select(self, image_forward_outs):
-        image_features = image_forward_outs.hidden_states[self.select_layer]
-        if self.select_feature == 'patch':
-            image_features = image_features[:, 1:]
-        elif self.select_feature == 'cls_patch':
-            image_features = image_features
-        else:
-            raise ValueError(f'Unexpected select feature: {self.select_feature}')
+        image_features = image_forward_outs.last_hidden_state
+        # if self.select_feature == 'patch':
+        #     image_features = image_features[:, 1:]
+        # elif self.select_feature == 'cls_patch':
+        #     image_features = image_features
+        # else:
+        #     raise ValueError(f'Unexpected select feature: {self.select_feature}')
         return image_features
 
     @torch.no_grad()
     def forward(self, images):
         if type(images) is list:
-            image_features = []
-            for image in images:
-                image_forward_out = self.vision_tower(image.to(device=self.device, dtype=self.dtype).unsqueeze(0), output_hidden_states=True)
-                image_feature = self.feature_select(image_forward_out).to(image.dtype)
-                image_features.append(image_feature)
+            inputs = {}
+            patch = torch.cat([img['flattened_patches'] for img in images], dim=0) 
+            inputs["flattened_patches"] = patch
+
+            mask = torch.cat([img['attention_mask'] for img in images], dim=0) 
+            inputs["attention_mask"] = mask
+            image_forward_out = self.vision_tower(**inputs, output_hidden_states=False)
+            image_features = image_forward_out.last_hidden_state
+            
         else:
-            image_forward_outs = self.vision_tower(images.to(device=self.device, dtype=self.dtype), output_hidden_states=True)
-            image_features = self.feature_select(image_forward_outs).to(images.dtype)
+            # image_forward_outs = self.vision_tower(images.to(device=self.device, dtype=self.dtype), output_hidden_states=True)
+            # print("images key_start")
+            images['flattened_patches'] = images['flattened_patches'].squeeze(0).to(dtype=torch.bfloat16)
+            images["attention_mask"] = images["attention_mask"].squeeze(0).to(dtype=torch.bfloat16)
+            # print(images["flattened_patches"].shape)
+            # print(images["attention_mask"].shape)
+            # print("images_key end")
+            image_forward_outs = self.vision_tower(**images, output_hidden_states=False)
+            # image_features = self.feature_select(image_forward_outs).to(images.dtype)
+            image_features = image_forward_outs.last_hidden_state
 
         return image_features
 

@@ -138,6 +138,7 @@ class LlavaMetaForCausalLM(ABC):
         return self.get_model().get_vision_tower()
 
     def encode_images(self, images):
+        
         image_features = self.get_model().get_vision_tower()(images)
         image_features = self.get_model().mm_projector(image_features)
         return image_features
@@ -150,56 +151,56 @@ class LlavaMetaForCausalLM(ABC):
         if vision_tower is None or images is None or input_ids.shape[1] == 1:
             return input_ids, position_ids, attention_mask, past_key_values, None, labels
 
-        if type(images) is list or images.ndim == 5:
-            if type(images) is list:
-                images = [x.unsqueeze(0) if x.ndim == 3 else x for x in images]
-            concat_images = torch.cat([image for image in images], dim=0)
-            image_features = self.encode_images(concat_images)
-            split_sizes = [image.shape[0] for image in images]
-            image_features = torch.split(image_features, split_sizes, dim=0)
-            mm_patch_merge_type = getattr(self.config, 'mm_patch_merge_type', 'flat')
-            image_aspect_ratio = getattr(self.config, 'image_aspect_ratio', 'square')
-            if mm_patch_merge_type == 'flat':
-                image_features = [x.flatten(0, 1) for x in image_features]
-            elif mm_patch_merge_type.startswith('spatial'):
-                new_image_features = []
-                for image_idx, image_feature in enumerate(image_features):
-                    if image_feature.shape[0] > 1:
-                        base_image_feature = image_feature[0]
-                        image_feature = image_feature[1:]
-                        height = width = self.get_vision_tower().num_patches_per_side
-                        assert height * width == base_image_feature.shape[0]
-                        if image_aspect_ratio == 'anyres':
-                            num_patch_width, num_patch_height = get_anyres_image_grid_shape(image_sizes[image_idx], self.config.image_grid_pinpoints, self.get_vision_tower().config.image_size)
-                            image_feature = image_feature.view(num_patch_height, num_patch_width, height, width, -1)
-                        else:
-                            raise NotImplementedError
-                        if 'unpad' in mm_patch_merge_type:
-                            image_feature = image_feature.permute(4, 0, 2, 1, 3).contiguous()
-                            image_feature = image_feature.flatten(1, 2).flatten(2, 3)
-                            image_feature = unpad_image(image_feature, image_sizes[image_idx])
-                            image_feature = torch.cat((
-                                image_feature,
-                                self.model.image_newline[:, None, None].expand(*image_feature.shape[:-1], 1).to(image_feature.device)
-                            ), dim=-1)
-                            image_feature = image_feature.flatten(1, 2).transpose(0, 1)
-                        else:
-                            image_feature = image_feature.permute(0, 2, 1, 3, 4).contiguous()
-                            image_feature = image_feature.flatten(0, 3)
-                        image_feature = torch.cat((base_image_feature, image_feature), dim=0)
-                    else:
-                        image_feature = image_feature[0]
-                        if 'unpad' in mm_patch_merge_type:
-                            image_feature = torch.cat((
-                                image_feature,
-                                self.model.image_newline[None].to(image_feature.device)
-                            ), dim=0)
-                    new_image_features.append(image_feature)
-                image_features = new_image_features
-            else:
-                raise ValueError(f"Unexpected mm_patch_merge_type: {self.config.mm_patch_merge_type}")
-        else:
-            image_features = self.encode_images(images)
+        # if type(images) is list or images.ndim == 5:
+        #     if type(images) is list:
+        #         images = [x.unsqueeze(0) if x.ndim == 3 else x for x in images]
+        #     concat_images = torch.cat([image for image in images], dim=0)
+        #     image_features = self.encode_images(concat_images)
+        #     split_sizes = [image.shape[0] for image in images]
+        #     image_features = torch.split(image_features, split_sizes, dim=0)
+        #     mm_patch_merge_type = getattr(self.config, 'mm_patch_merge_type', 'flat')
+        #     image_aspect_ratio = getattr(self.config, 'image_aspect_ratio', 'square')
+        #     if mm_patch_merge_type == 'flat':
+        #         image_features = [x.flatten(0, 1) for x in image_features]
+            # elif mm_patch_merge_type.startswith('spatial'):
+            #     new_image_features = []
+            #     for image_idx, image_feature in enumerate(image_features):
+            #         if image_feature.shape[0] > 1:
+            #             base_image_feature = image_feature[0]
+            #             image_feature = image_feature[1:]
+            #             height = width = self.get_vision_tower().num_patches_per_side
+            #             assert height * width == base_image_feature.shape[0]
+            #             if image_aspect_ratio == 'anyres':
+            #                 num_patch_width, num_patch_height = get_anyres_image_grid_shape(image_sizes[image_idx], self.config.image_grid_pinpoints, self.get_vision_tower().config.image_size)
+            #                 image_feature = image_feature.view(num_patch_height, num_patch_width, height, width, -1)
+            #             else:
+            #                 raise NotImplementedError
+            #             if 'unpad' in mm_patch_merge_type:
+            #                 image_feature = image_feature.permute(4, 0, 2, 1, 3).contiguous()
+            #                 image_feature = image_feature.flatten(1, 2).flatten(2, 3)
+            #                 image_feature = unpad_image(image_feature, image_sizes[image_idx])
+            #                 image_feature = torch.cat((
+            #                     image_feature,
+            #                     self.model.image_newline[:, None, None].expand(*image_feature.shape[:-1], 1).to(image_feature.device)
+            #                 ), dim=-1)
+            #                 image_feature = image_feature.flatten(1, 2).transpose(0, 1)
+            #             else:
+            #                 image_feature = image_feature.permute(0, 2, 1, 3, 4).contiguous()
+            #                 image_feature = image_feature.flatten(0, 3)
+            #             image_feature = torch.cat((base_image_feature, image_feature), dim=0)
+            #         else:
+            #             image_feature = image_feature[0]
+            #             if 'unpad' in mm_patch_merge_type:
+            #                 image_feature = torch.cat((
+            #                     image_feature,
+            #                     self.model.image_newline[None].to(image_feature.device)
+            #                 ), dim=0)
+            #         new_image_features.append(image_feature)
+            #     image_features = new_image_features
+        #     else:
+        #         raise ValueError(f"Unexpected mm_patch_merge_type: {self.config.mm_patch_merge_type}")
+        # else:
+        image_features = self.encode_images(images)
 
         # TODO: image start / end is not implemented here to support pretraining.
         if getattr(self.config, 'tune_mm_mlp_adapter', False) and getattr(self.config, 'mm_use_im_start_end', False):
