@@ -1,0 +1,36 @@
+[2024-07-28 04:59:09,595] [INFO] [real_accelerator.py:161:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+/home/work/ai-hub/anaconda3/envs/llava/lib/python3.10/site-packages/transformers/utils/hub.py:124: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+[2024-07-28 04:59:15,446] [WARNING] [runner.py:202:fetch_hostfile] Unable to find hostfile, will proceed with training with local resources only.
+[2024-07-28 04:59:15,447] [INFO] [runner.py:571:main] cmd = /home/work/ai-hub/anaconda3/envs/llava/bin/python -u -m deepspeed.launcher.launch --world_info=eyJsb2NhbGhvc3QiOiBbMCwgMV19 --master_addr=127.0.0.1 --master_port=29500 --enable_each_rank_log=None llava/train/train.py --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 --deepspeed ./scripts/zero2.json --model_name_or_path /home/work/ai-hub/pretrained_model/maywell/Synatra-7B-v0.3-dpo --version v1 --data_path /home/work/ai-hub/data/train/json_data/finetune_100k.json --image_folder /home/work/ai-hub/data/train/img_data --vision_tower nuua/ko-deplot --pretrain_mm_mlp_adapter /home/work/ai-hub/Test_LLaVA/checkpoints/llava-v1.5-7b-all/mm_projector.bin --mm_projector_type mlp2x_gelu --mm_use_im_start_end False --mm_use_im_patch_token False --image_aspect_ratio pad --group_by_modality_length True --bf16 True --output_dir ./checkpoints/llava-v1.5-7b-lora --num_train_epochs 1 --per_device_train_batch_size 8 --per_device_eval_batch_size 4 --gradient_accumulation_steps 1 --evaluation_strategy no --save_strategy steps --save_steps 50000 --save_total_limit 1 --learning_rate 2e-5 --weight_decay 0. --warmup_ratio 0.03 --lr_scheduler_type cosine --logging_steps 1 --tf32 True --model_max_length 2048 --gradient_checkpointing True --dataloader_num_workers 4 --lazy_preprocess True --report_to wandb
+[2024-07-28 04:59:18,575] [INFO] [real_accelerator.py:161:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+/home/work/ai-hub/anaconda3/envs/llava/lib/python3.10/site-packages/transformers/utils/hub.py:124: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+[2024-07-28 04:59:21,414] [INFO] [launch.py:138:main] 0 NCCL_VERSION=2.18.5
+[2024-07-28 04:59:21,414] [INFO] [launch.py:138:main] 0 NCCL_CUDA_PATH=/opt/kernel
+[2024-07-28 04:59:21,415] [INFO] [launch.py:145:main] WORLD INFO DICT: {'localhost': [0, 1]}
+[2024-07-28 04:59:21,415] [INFO] [launch.py:151:main] nnodes=1, num_local_procs=2, node_rank=0
+[2024-07-28 04:59:21,416] [INFO] [launch.py:162:main] global_rank_mapping=defaultdict(<class 'list'>, {'localhost': [0, 1]})
+[2024-07-28 04:59:21,416] [INFO] [launch.py:163:main] dist_world_size=2
+[2024-07-28 04:59:21,416] [INFO] [launch.py:165:main] Setting CUDA_VISIBLE_DEVICES=0,1
+/home/work/ai-hub/anaconda3/envs/llava/lib/python3.10/site-packages/transformers/utils/hub.py:124: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+/home/work/ai-hub/anaconda3/envs/llava/lib/python3.10/site-packages/transformers/utils/hub.py:124: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+[2024-07-28 04:59:26,282] [INFO] [real_accelerator.py:161:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2024-07-28 04:59:26,418] [INFO] [real_accelerator.py:161:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2024-07-28 04:59:30,378] [INFO] [launch.py:315:sigkill_handler] Killing subprocess 1600001
+[2024-07-28 04:59:30,477] [INFO] [launch.py:315:sigkill_handler] Killing subprocess 1600002
+[2024-07-28 04:59:30,588] [INFO] [launch.py:324:sigkill_handler] Main process received SIGINT, exiting
+Traceback (most recent call last):
+  File "/home/work/ai-hub/anaconda3/envs/llava/bin/deepspeed", line 6, in <module>
+    main()
+  File "/home/work/ai-hub/anaconda3/envs/llava/lib/python3.10/site-packages/deepspeed/launcher/runner.py", line 587, in main
+    result.wait()
+  File "/home/work/ai-hub/anaconda3/envs/llava/lib/python3.10/subprocess.py", line 1209, in wait
+    return self._wait(timeout=timeout)
+  File "/home/work/ai-hub/anaconda3/envs/llava/lib/python3.10/subprocess.py", line 1959, in _wait
+    (pid, sts) = self._try_wait(0)
+  File "/home/work/ai-hub/anaconda3/envs/llava/lib/python3.10/subprocess.py", line 1917, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+KeyboardInterrupt
