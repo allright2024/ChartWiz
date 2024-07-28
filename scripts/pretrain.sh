@@ -2,7 +2,7 @@
 
 deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
-    --model_name_or_path "/home/work/ai-hub/pretrained_model/maywell/Synatra-7B-v0.3-dpo" \
+    --model_name_or_path Qwen/Qwen2-7B-Instruct \
     --version plain \
     --data_path /home/work/ai-hub/data/train/json_data/train_shuffle_annotations_all.json \
     --image_folder /home/work/ai-hub/data/train/img_data \
