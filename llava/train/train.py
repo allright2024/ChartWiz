@@ -537,8 +537,6 @@ def preprocess(
         return preprocess_llama_2(sources, tokenizer, has_image=has_image)
     if conversation_lib.default_conversation.version.startswith("v1"):
         return preprocess_v1(sources, tokenizer, has_image=has_image)
-    if conversation_lib.default_conversation.version == "mpt":
-        return preprocess_mpt(sources, tokenizer, has_image=has_image)
     # add end signal and concatenate together
     conversations = []
     for source in sources:
@@ -667,9 +665,7 @@ class DataCollatorForSupervisedDataset(object):
         
         if 'image' in instances[0]:
             images = [instance['image'] for instance in instances]
-        #     if all(x is not None and x.shape == images[0].shape for x in images):
-        #         batch['images'] = torch.stack(images)
-            # else:
+        
             batch['images'] = images
 
         return batch
@@ -699,60 +695,20 @@ def train(attn_implementation=None):
     compute_dtype = (torch.float16 if training_args.fp16 else (torch.bfloat16 if training_args.bf16 else torch.float32))
 
     bnb_model_from_pretrained_args = {}
-    if training_args.bits in [4, 8]:
-        from transformers import BitsAndBytesConfig
-        bnb_model_from_pretrained_args.update(dict(
-            device_map={"": training_args.device},
-            load_in_4bit=training_args.bits == 4,
-            load_in_8bit=training_args.bits == 8,
-            quantization_config=BitsAndBytesConfig(
-                load_in_4bit=training_args.bits == 4,
-                load_in_8bit=training_args.bits == 8,
-                llm_int8_skip_modules=["mm_projector"],
-                llm_int8_threshold=6.0,
-                llm_int8_has_fp16_weight=False,
-                bnb_4bit_compute_dtype=compute_dtype,
-                bnb_4bit_use_double_quant=training_args.double_quant,
-                bnb_4bit_quant_type=training_args.quant_type # {'fp4', 'nf4'}
-            )
-        ))
 
-    if model_args.vision_tower is not None:
-        if 'mpt' in model_args.model_name_or_path:
-            config = transformers.AutoConfig.from_pretrained(model_args.model_name_or_path, trust_remote_code=True)
-            config.attn_config['attn_impl'] = training_args.mpt_attn_impl
-            model = LlavaMptForCausalLM.from_pretrained(
-                model_args.model_name_or_path,
-                config=config,
-                cache_dir=training_args.cache_dir,
-                **bnb_model_from_pretrained_args
-            )
-        else:
-            model = LlavaMistralForCausalLM.from_pretrained(
-                model_args.model_name_or_path,
-                cache_dir=training_args.cache_dir,
-                attn_implementation=attn_implementation,
-                torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
-                **bnb_model_from_pretrained_args
-            )
-    else:
-        model = transformers.LlamaForCausalLM.from_pretrained(
-            model_args.model_name_or_path,
-            cache_dir=training_args.cache_dir,
-            attn_implementation=attn_implementation,
-            torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
-            **bnb_model_from_pretrained_args
-        )
+    model = LlavaMistralForCausalLM.from_pretrained(
+        model_args.model_name_or_path,
+        cache_dir=training_args.cache_dir,
+        attn_implementation=attn_implementation,
+        torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+        **bnb_model_from_pretrained_args
+    )
+    
     model.config.use_cache = False
 
     if model_args.freeze_backbone:
         model.model.requires_grad_(False)
-
-    if training_args.bits in [4, 8]:
-        from peft import prepare_model_for_kbit_training
-        model.config.torch_dtype=(torch.float32 if training_args.fp16 else (torch.bfloat16 if training_args.bf16 else torch.float32))
-        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=training_args.gradient_checkpointing)
-
+        
     if training_args.gradient_checkpointing:
         if hasattr(model, "enable_input_require_grads"):
             model.enable_input_require_grads()
@@ -779,21 +735,14 @@ def train(attn_implementation=None):
         rank0_print("Adding LoRA adapters...")
         model = get_peft_model(model, lora_config)
 
-    if 'mpt' in model_args.model_name_or_path:
-        tokenizer = transformers.AutoTokenizer.from_pretrained(
-            model_args.model_name_or_path,
-            cache_dir=training_args.cache_dir,
-            model_max_length=training_args.model_max_length,
-            padding_side="right"
-        )
-    else:
-        tokenizer = transformers.AutoTokenizer.from_pretrained(
-            model_args.model_name_or_path,
-            cache_dir=training_args.cache_dir,
-            model_max_length=training_args.model_max_length,
-            padding_side="right",
-            use_fast=False,
-        )
+    
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        model_args.model_name_or_path,
+        cache_dir=training_args.cache_dir,
+        model_max_length=training_args.model_max_length,
+        padding_side="right",
+        use_fast=False,
+    )
 
     tokenizer.pad_token = tokenizer.unk_token
     if model_args.version in conversation_lib.conv_templates:
@@ -828,27 +777,12 @@ def train(attn_implementation=None):
             for p in model.get_model().mm_projector.parameters():
                 p.requires_grad = False
 
-        if training_args.bits in [4, 8]:
-            model.get_model().mm_projector.to(dtype=compute_dtype, device=training_args.device)
 
         model.config.mm_use_im_start_end = data_args.mm_use_im_start_end = model_args.mm_use_im_start_end
         model.config.mm_projector_lr = training_args.mm_projector_lr
         training_args.use_im_start_end = model_args.mm_use_im_start_end
         model.config.mm_use_im_patch_token = model_args.mm_use_im_patch_token
         model.initialize_vision_tokenizer(model_args, tokenizer=tokenizer)
-
-    if training_args.bits in [4, 8]:
-        from peft.tuners.lora import LoraLayer
-        for name, module in model.named_modules():
-            if isinstance(module, LoraLayer):
-                if training_args.bf16:
-                    module = module.to(torch.bfloat16)
-            if 'norm' in name:
-                module = module.to(torch.float32)
-            if 'lm_head' in name or 'embed_tokens' in name:
-                if hasattr(module, 'weight'):
-                    if training_args.bf16 and module.weight.dtype == torch.float32:
-                        module = module.to(torch.bfloat16)
 
     data_module = make_supervised_data_module(tokenizer=tokenizer,
                                               data_args=data_args,
