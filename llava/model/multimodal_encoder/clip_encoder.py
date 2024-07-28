@@ -40,17 +40,11 @@ class CLIPVisionTower(nn.Module):
 
     def feature_select(self, image_forward_outs):
         image_features = image_forward_outs.last_hidden_state
-        # if self.select_feature == 'patch':
-        #     image_features = image_features[:, 1:]
-        # elif self.select_feature == 'cls_patch':
-        #     image_features = image_features
-        # else:
-        #     raise ValueError(f'Unexpected select feature: {self.select_feature}')
         return image_features
 
     @torch.no_grad()
     def forward(self, images):
-        if type(images) is list:
+        if type(images) is list: # train
             inputs = {}
             patch = torch.cat([img['flattened_patches'] for img in images], dim=0) 
             inputs["flattened_patches"] = patch
@@ -60,16 +54,10 @@ class CLIPVisionTower(nn.Module):
             image_forward_out = self.vision_tower(**inputs, output_hidden_states=False)
             image_features = image_forward_out.last_hidden_state
             
-        else:
-            # image_forward_outs = self.vision_tower(images.to(device=self.device, dtype=self.dtype), output_hidden_states=True)
-            # print("images key_start")
+        else: # inference
             images['flattened_patches'] = images['flattened_patches'].squeeze(0).to(dtype=torch.bfloat16)
             images["attention_mask"] = images["attention_mask"].squeeze(0).to(dtype=torch.bfloat16)
-            # print(images["flattened_patches"].shape)
-            # print(images["attention_mask"].shape)
-            # print("images_key end")
             image_forward_outs = self.vision_tower(**images, output_hidden_states=False)
-            # image_features = self.feature_select(image_forward_outs).to(images.dtype)
             image_features = image_forward_outs.last_hidden_state
 
         return image_features
