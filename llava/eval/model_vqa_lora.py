@@ -10,7 +10,6 @@ import shutil
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig, Pix2StructForConditionalGeneration, AutoProcessor
 from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 from llava.conversation import conv_templates, SeparatorStyle
-# from llava.model.builder import load_pretrained_model
 from llava.model import *
 from llava.utils import disable_torch_init
 from llava.mm_utils import tokenizer_image_token, process_images, get_model_name_from_path
@@ -21,19 +20,7 @@ import math
 def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, load_4bit=False, device_map="auto", device="cuda"):
     # kwargs = {"device_map": device_map}
     kwargs = {}
-
-    if load_8bit:
-        kwargs['load_in_8bit'] = True
-    elif load_4bit:
-        kwargs['load_in_4bit'] = True
-        kwargs['quantization_config'] = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type='nf4'
-        )
-    else:
-        kwargs['torch_dtype'] = torch.bfloat16
+    kwargs['torch_dtype'] = torch.bfloat16
 
     # Load LLaVA model
     if model_base is None:
@@ -46,11 +33,18 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
             padding_side="right", 
             use_fast=False)
         print('Loading LLaVA from base model...')
-        model = LlavaMistralForCausalLM.from_pretrained(
-            model_base, 
-            low_cpu_mem_usage=False,  # 끄기 
-            config=lora_cfg_pretrained, 
-            **kwargs)
+        if "qwen" in model_base.lower():
+            model = LlavaQwen2ForCausalLM.from_pretrained(
+                model_base, 
+                low_cpu_mem_usage=False,  # 끄기 
+                config=lora_cfg_pretrained, 
+                **kwargs)
+        else:
+            model = LlavaMistralForCausalLM.from_pretrained(
+                model_base, 
+                low_cpu_mem_usage=False,  # 끄기 
+                config=lora_cfg_pretrained, 
+                **kwargs)
         
         print("Model from pretrained")
         token_num, tokem_dim = model.lm_head.out_features, model.lm_head.in_features
@@ -144,10 +138,6 @@ class CustomDataset(Dataset):
 
         image = Image.open(os.path.join(self.image_folder, image_file))
         images = [image]
-        # image_tensor = process_images([image], self.image_processor, self.model_config)[0]
-        # aihub인경우 
-        # images = self.image_processor(images=images, return_tensors="pt",  max_patches=512)
-        # ko-deplot인경우
         images = self.image_processor(images=images, text="Generate underlying data table of the figure below:", return_tensors="pt",  max_patches=512)
         
         input_ids = tokenizer_image_token(prompt, self.tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt')
@@ -183,6 +173,8 @@ def eval_model(args):
     if 'plain' in model_name and 'finetune' not in model_name.lower() and 'mmtag' not in args.conv_mode:
         args.conv_mode = args.conv_mode + '_mmtag'
         print(f'It seems that this is a plain model, but it is not using a mmtag prompt, auto switching to {args.conv_mode}.')
+    elif 'qwen' in model_name.lower():
+        args.conv_mode = "qwen_2"
 
     data_loader = create_data_loader(questions, args.image_folder, tokenizer, image_processor, model.config)
 
@@ -192,7 +184,6 @@ def eval_model(args):
         idx = line["id"]
         cur_prompt = line["conversations"][0]['value'].replace(DEFAULT_IMAGE_TOKEN, '').strip()
 
-        # print(cur_prompt)
 
         stop_str = conv_templates[args.conv_mode].sep if conv_templates[args.conv_mode].sep_style != SeparatorStyle.TWO else conv_templates[args.conv_mode].sep2
         input_ids = input_ids.to(device='cuda', non_blocking=True)
@@ -203,6 +194,7 @@ def eval_model(args):
                 input_ids,
                 attention_mask = attention_mask,
                 pad_token_id = tokenizer.pad_token_id,
+                eos_token_id = tokenizer.eos_token_id,
                 images=images.to("cuda"),
                 do_sample=True if args.temperature > 0 else False,
                 temperature=args.temperature,
@@ -211,10 +203,6 @@ def eval_model(args):
                 max_new_tokens=1636,
                 use_cache=True)
         
-        input_token_len = input_ids.shape[1]
-        # n_diff_input_output = (input_ids != output_ids[:, :]).sum().item()
-        # if n_diff_input_output > 0:
-        #     print(f'[Warning] {n_diff_input_output} output_ids are not the same as the input_ids')
         outputs = tokenizer.batch_decode(output_ids[:, :], skip_special_tokens=True)[0]
         outputs = outputs.strip()
         if outputs.endswith(stop_str):

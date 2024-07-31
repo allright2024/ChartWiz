@@ -19,7 +19,8 @@ from typing import List, Optional, Tuple, Union
 import torch
 import torch.nn as nn
 
-from transformers import AutoConfig, AutoModelForCausalLM, Qwen2Config, Qwen2Model, Qwen2ForCausalLM
+from transformers import AutoConfig, AutoModelForCausalLM, \
+                         Qwen2Config, Qwen2Model, Qwen2ForCausalLM
 
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.generation.utils import GenerateOutput
@@ -69,7 +70,13 @@ class LlavaQwen2ForCausalLM(Qwen2ForCausalLM, LlavaMetaForCausalLM):
         image_sizes: Optional[List[List[int]]] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
-
+        print("input_ids: ", input_ids)
+        print("position_ids: ", position_ids)
+        print("attention_mask: ", attention_mask)
+        print("past_key_values: ", past_key_values)
+        print("input_embeds", inputs_embeds)
+        print("labels: ", labels)
+        exit()
         if inputs_embeds is None:
             (
                 input_ids,

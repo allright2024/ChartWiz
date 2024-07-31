@@ -22,6 +22,7 @@ dist
 wandb
 output
 
+logs
 checkpoints
 ckpts*
 

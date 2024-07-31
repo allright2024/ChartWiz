@@ -52,6 +52,7 @@ class Conversation:
                     ret += role + ": " + message + self.sep
                 else:
                     ret += role + ":"
+                    
         elif self.sep_style == SeparatorStyle.QWEN_2:  # fix: add qwen2
             seps = [self.sep, self.sep2]
             ret = self.system + seps[0]
@@ -373,7 +374,7 @@ conv_qwen_2 = Conversation(
     system="A chat between a curious user and an artificial intelligence assistant. "
     "The assistant gives helpful, detailed, and polite answers to the user's questions.",
     roles=("USER", "ASSISTANT"),
-    version="qwen_v2",
+    version="qwen_2",
     messages=(),
     offset=0,
     sep_style=SeparatorStyle.QWEN_2,
@@ -394,7 +395,7 @@ Answer the questions.""",
 
 default_conversation = conv_vicuna_v1
 conv_templates = {
-    "default": conv_qwen_2,
+    "default": conv_llava_plain,
     "v0": conv_vicuna_v0,
     "v1": conv_vicuna_v1,
     "vicuna_v1": conv_vicuna_v1,

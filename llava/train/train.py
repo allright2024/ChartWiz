@@ -333,7 +333,6 @@ def preprocess_qwen_2(
     tokenizer: transformers.PreTrainedTokenizer,
     has_image: bool = False
 ) -> Dict:
-    # print('-----preprocess_qwen_2-------')
     conv = conversation_lib.default_conversation.copy()
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
 
@@ -352,7 +351,6 @@ def preprocess_qwen_2(
         conversations.append(conv.get_prompt())
 
     # Tokenize conversations
-
     if has_image:
         input_ids = torch.stack([tokenizer_image_token(prompt, tokenizer, return_tensors='pt') for prompt in conversations], dim=0)
     else:
@@ -409,7 +407,8 @@ def preprocess_qwen_2(
             target[cur_len: cur_len + instruction_len] = IGNORE_INDEX
 
             cur_len += round_len
-        target[cur_len:] = IGNORE_INDEX
+        # 마지막 토큰을 endfosentence 토큰으로 되도록
+        # target[cur_len:] = IGNORE_INDEX
 
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len + rounds_len - 2:
@@ -471,6 +470,7 @@ def preprocess_llama_2(
         rounds = conversation.split(conv.sep2)
         cur_len = 1
         target[:cur_len] = IGNORE_INDEX
+        
         for i, rou in enumerate(rounds):
             if rou == "":
                 break
@@ -513,7 +513,6 @@ def preprocess_v1(
 ) -> Dict:
     conv = conversation_lib.default_conversation.copy()
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
-
     # Apply prompt templates
     conversations = []
     for i, source in enumerate(sources):
@@ -556,7 +555,6 @@ def preprocess_v1(
         for i, rou in enumerate(rounds):
             if rou == "":
                 break
-
             parts = rou.split(sep)
             if len(parts) != 2:
                 break
@@ -582,7 +580,7 @@ def preprocess_v1(
             if cur_len != total_len:
                 target[:] = IGNORE_INDEX
                 print(
-                    f"WARNING: tokenization mismatch: {cur_len} vs. {total_len}."
+                    f"WARNING: tokenization mismatch -v1: {cur_len} vs. {total_len}."
                     f" (ignored)"
                 )
 
@@ -602,15 +600,19 @@ def preprocess_plain(
         assert len(source) == 2
         assert DEFAULT_IMAGE_TOKEN in source[0]['value']
         source[0]['value'] = DEFAULT_IMAGE_TOKEN
+        #  이 부분 수정
         conversation = source[0]['value'] + source[1]['value'] + conversation_lib.default_conversation.sep
+        # conversation = source[0]["value"] + source[1]["value"] + tokenizer.eos_token
         conversations.append(conversation)
     # tokenize conversations
     input_ids = [tokenizer_image_token(prompt, tokenizer, return_tensors='pt') for prompt in conversations]
+    
     targets = copy.deepcopy(input_ids)
     for target, source in zip(targets, sources):
         tokenized_len = len(tokenizer_image_token(source[0]['value'], tokenizer))
         target[:tokenized_len] = IGNORE_INDEX
-
+        
+    
     return dict(input_ids=input_ids, labels=targets)
 
 
@@ -632,7 +634,7 @@ def preprocess(
         return preprocess_llama_2(sources, tokenizer, has_image=has_image)
     if conversation_lib.default_conversation.version.startswith("v1"):
         return preprocess_v1(sources, tokenizer, has_image=has_image)
-    if conversation_lib.default_conversation.version.startswith("qwen_v2"):
+    if conversation_lib.default_conversation.version.startswith("qwen_2"):
         return preprocess_qwen_2(sources, tokenizer, has_image=has_image)
     # add end signal and concatenate together
     conversations = []
@@ -795,11 +797,11 @@ def train(attn_implementation=None):
 
     if "qwen" in model_args.model_name_or_path.lower():
         model = LlavaQwen2ForCausalLM.from_pretrained(
-                model_args.model_name_or_path,
-                cache_dir=training_args.cache_dir,
-                attn_implementation=attn_implementation,
-                torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
-                **bnb_model_from_pretrained_args
+            model_args.model_name_or_path,
+            cache_dir=training_args.cache_dir,
+            attn_implementation=attn_implementation,
+            torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+            **bnb_model_from_pretrained_args
         )
     elif "synatra" in model_args.model_name_or_path.lower():
         model = LlavaMistralForCausalLM.from_pretrained(
@@ -862,10 +864,12 @@ def train(attn_implementation=None):
         tokenizer.pad_token = tokenizer.unk_token
     else:
         tokenizer.legacy = False
+    
+
     if model_args.version in conversation_lib.conv_templates:
         conversation_lib.default_conversation = conversation_lib.conv_templates[model_args.version]
     else:
-        conversation_lib.default_conversation = conversation_lib.conv_templates["qwen_2"]
+        conversation_lib.default_conversation = conversation_lib.conv_templates["plain"]
 
     if model_args.vision_tower is not None:
         model.get_model().initialize_vision_modules(
