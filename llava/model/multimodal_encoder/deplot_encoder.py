@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from transformers import CLIPVisionModel, CLIPImageProcessor, CLIPVisionConfig, AutoProcessor, Pix2StructForConditionalGeneration, Pix2StructProcessor, Pix2StructConfig
+from transformers import AutoProcessor, Pix2StructForConditionalGeneration, Pix2StructProcessor, Pix2StructConfig
 
 
 class DeplotVisionTower(nn.Module):
@@ -29,6 +29,7 @@ class DeplotVisionTower(nn.Module):
         self.vision_tower = Pix2StructForConditionalGeneration.from_pretrained(self.vision_tower_name)
         if self.vision_tower_name == "nuua/ko-deplot":
             self.image_processor = Pix2StructProcessor.from_pretrained(self.vision_tower_name)
+            self.vision_tower.load_state_dict(torch.load("/home/work/ai-hub/pretrained_model/vaiv_deplot/deplot_model_ver_kor_24.7.25_refinetuning_epoch3.bin"))
         elif self.vision_tower_name == "ybelkada/pix2struct-base":
             self.image_processor = AutoProcessor.from_pretrained(self.vision_tower_name)
             self.vision_tower.load_state_dict(torch.load("/home/work/ai-hub/pretrained_model/deplot/deplot_k.pt"))
@@ -55,9 +56,10 @@ class DeplotVisionTower(nn.Module):
             image_features = image_forward_out.last_hidden_state
             
         else: # inference
-            images['flattened_patches'] = images['flattened_patches'].squeeze(0).to(dtype=torch.bfloat16)
-            images["attention_mask"] = images["attention_mask"].squeeze(0).to(dtype=torch.bfloat16)
-            image_forward_outs = self.vision_tower(**images, output_hidden_states=False)
+            inputs = {}
+            inputs['flattened_patches'] = images['flattened_patches'].squeeze(0).to(dtype=torch.bfloat16)
+            inputs["attention_mask"] = images["attention_mask"].squeeze(0).to(dtype=torch.bfloat16)
+            image_forward_outs = self.vision_tower(**inputs, output_hidden_states=False)
             image_features = image_forward_outs.last_hidden_state
 
         return image_features

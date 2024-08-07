@@ -189,6 +189,7 @@ def eval_model(args):
         input_ids = input_ids.to(device='cuda', non_blocking=True)
         attention_mask = input_ids.ne(tokenizer.pad_token_id).to(device='cuda')
 
+        # print(images["flattened_patches"].shape)
         with torch.inference_mode():
             output_ids = model.generate(
                 input_ids,
