@@ -504,6 +504,16 @@ def preprocess_llama_2(
         input_ids=input_ids,
         labels=targets,
     )
+    
+def preprocess_exaone(
+    sources,
+    tokenizer: transformers.PreTrainedTokenizer,
+    has_image: bool = False
+) -> Dict:
+    conv = conversation_lib.default_conversation.copy()
+    roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
+    conversations = []
+    
 
 
 def preprocess_v1(
@@ -636,6 +646,8 @@ def preprocess(
         return preprocess_v1(sources, tokenizer, has_image=has_image)
     if conversation_lib.default_conversation.version.startswith("qwen_2"):
         return preprocess_qwen_2(sources, tokenizer, has_image=has_image)
+    if conversation_lib.default_conversation.version.startswith("exaone"):
+        return preprocess_exaone(sources, tokenizer, has_image=has_image)
     # add end signal and concatenate together
     conversations = []
     for source in sources:
@@ -804,6 +816,14 @@ def train(attn_implementation=None):
             **bnb_model_from_pretrained_args
         )
     elif "synatra" in model_args.model_name_or_path.lower():
+        model = LlavaMistralForCausalLM.from_pretrained(
+            model_args.model_name_or_path,
+            cache_dir=training_args.cache_dir,
+            attn_implementation=attn_implementation,
+            torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+            **bnb_model_from_pretrained_args
+        )
+    elif "exaone" in model_args.model_name_or_path.lower():
         model = LlavaMistralForCausalLM.from_pretrained(
             model_args.model_name_or_path,
             cache_dir=training_args.cache_dir,

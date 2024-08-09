@@ -14,6 +14,7 @@ class SeparatorStyle(Enum):
     PLAIN = auto()
     LLAMA_2 = auto()
     QWEN_2 = auto()
+    EXAONE = auto()
 
 
 @dataclasses.dataclass
@@ -113,6 +114,16 @@ class Conversation:
                     ret += message + seps[i % 2]
                 else:
                     ret += ""
+        elif self.sep_style == SeparatorStyle.EXAONE:
+            seps = [self.sep, self.sep2]
+            ret = self.system + seps[0]
+            for i, (role, message) in enumerate(messages):
+                if message:
+                    if type(message) is tuple:
+                        message, _, _ = message
+                    ret += role + ": " + message + seps[i % 2]
+                else:
+                    ret += role + ":"
         else:
             raise ValueError(f"Invalid style: {self.sep_style}")
 
@@ -380,6 +391,17 @@ conv_qwen_2 = Conversation(
     sep_style=SeparatorStyle.QWEN_2,
     sep=" ",
     sep2="<|endoftext|>",
+)
+
+conv_exaone = Conversation(
+    system="You are EXAONE model from LG AI Research, a helpful assistant.",
+    roles = ("USER", "ASSISTANT"),
+    version="exaone",
+    messages=(),
+    offset=0,
+    sep_style=SeparatorStyle.EXAONE,
+    sep=" ",
+    sep2="[EOS]"
 )
 
 conv_chatml_direct = Conversation(

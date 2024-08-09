@@ -1,0 +1,1 @@
+streamlit run ./llava/eval/st_beta.py --server.address localhost
