@@ -31,6 +31,8 @@ class SimpleResBlock(nn.Module):
 
 
 def build_vision_projector(config, delay_load=False, **kwargs):
+    
+    
     projector_type = getattr(config, 'mm_projector_type', 'linear')
 
     if projector_type == 'linear':
@@ -39,10 +41,36 @@ def build_vision_projector(config, delay_load=False, **kwargs):
     mlp_gelu_match = re.match(r'^mlp(\d+)x_gelu$', projector_type)
     if mlp_gelu_match:
         mlp_depth = int(mlp_gelu_match.group(1))
-        modules = [nn.Linear(config.mm_hidden_size, config.hidden_size)]
-        for _ in range(1, mlp_depth):
+        if mlp_depth == 2:
+            modules = [nn.Linear(config.mm_hidden_size, config.hidden_size)]
+            for m in range(1, mlp_depth):
+                modules.append(nn.GELU())
+                modules.append(nn.Linear(config.hidden_size, config.hidden_size))
+        elif mlp_depth == 3:
+            modules = [nn.Linear(config.mm_hidden_size, 2048)]
             modules.append(nn.GELU())
-            modules.append(nn.Linear(config.hidden_size, config.hidden_size))
+            modules.append(nn.Linear(2048, 4096))
+            modules.append(nn.GELU())
+            modules.append(nn.Linear(4096, 4096))
+        elif mlp_depth == 4:
+            modules = [nn.Linear(config.mm_hidden_size, 1024)]
+            modules.append(nn.GELU())
+            modules.append(nn.Linear(1024, 2048))
+            modules.append(nn.GELU())
+            modules.append(nn.Linear(2048, 4096))
+            modules.append(nn.GELU())
+            modules.append(nn.Linear(4096, 4096))
+        elif mlp_depth == 5:
+            modules = [nn.Linear(config.mm_hidden_size, 1024)]
+            modules.append(nn.GELU())
+            modules.append(nn.Linear(1024, 2048))
+            modules.append(nn.GELU())
+            modules.append(nn.Linear(2048, 3072))
+            modules.append(nn.GELU())
+            modules.append(nn.Linear(3072, 4096))
+            modules.append(nn.GELU())
+            modules.append(nn.Linear(4096, 4096))
+            
         return nn.Sequential(*modules)
 
     if projector_type == 'identity':

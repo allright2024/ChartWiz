@@ -15,6 +15,7 @@ class SeparatorStyle(Enum):
     LLAMA_2 = auto()
     QWEN_2 = auto()
     EXAONE = auto()
+    SYNATRA_MINI = auto()
 
 
 @dataclasses.dataclass
@@ -65,6 +66,16 @@ class Conversation:
                 else:
                     ret += role + ":"
         elif self.sep_style == SeparatorStyle.TWO:
+            seps = [self.sep, self.sep2]
+            ret = self.system + seps[0]
+            for i, (role, message) in enumerate(messages):
+                if message:
+                    if type(message) is tuple:
+                        message, _, _ = message
+                    ret += role + ": " + message + seps[i % 2]
+                else:
+                    ret += role + ":"
+        elif self.sep_style == SeparatorStyle.SYNATRA_MINI:
             seps = [self.sep, self.sep2]
             ret = self.system + seps[0]
             for i, (role, message) in enumerate(messages):
@@ -344,7 +355,6 @@ conv_llava_v0_mmtag = Conversation(
     sep="###",
     version="v0_mmtag",
 )
-
 conv_llava_v1 = Conversation(
     system="A chat between a curious human and an artificial intelligence assistant. "
            "The assistant gives helpful, detailed, and polite answers to the human's questions.",
@@ -393,6 +403,18 @@ conv_qwen_2 = Conversation(
     sep2="<|endoftext|>",
 )
 
+conv_synatra_mini = Conversation(
+    system="A chat between a curious human and an artificial intelligence assistant. "
+           "The assistant gives helpful, detailed, and polite answers to the human's questions.",
+    roles=("USER", "ASSISTANT"),
+    version="synatra_mini",
+    messages=(),
+    offset=0,
+    sep_style=SeparatorStyle.SYNATRA_MINI,
+    sep=" ",
+    sep2="<|endoftext|>",
+)
+
 conv_exaone = Conversation(
     system="You are EXAONE model from LG AI Research, a helpful assistant.",
     roles = ("USER", "ASSISTANT"),
@@ -426,6 +448,7 @@ conv_templates = {
     "mistral_instruct": conv_mistral_instruct,
     "chatml_direct": conv_chatml_direct,
     "mistral_direct": conv_chatml_direct,
+    "synatra_mini": conv_synatra_mini,
 
     "plain": conv_llava_plain,
     "v0_plain": conv_llava_plain,

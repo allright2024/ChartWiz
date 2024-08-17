@@ -1,0 +1,63 @@
+        "image": "img_etc_mix/C_Source_167850_etc_mix.jpg",
+                "value": "<image>\n차트를 봤을 때, 2015의 \"경제활동인구 천 명당 연구원(FTE) 수\" 값은 얼마인가요?"
+                "value": "13.2" : 13.1
+
+        "image": "img_etc_mix/C_Source_101380_etc_mix.jpg",
+                "value": "<image>\n차트를 봤을 때, 2011년의 \"표준화 발생률\" 값은 얼마인가요?"
+                "value": "38" : 39
+
+        "image": "img_etc_mix/C_Source_210840_etc_mix.jpg",
+                "value": "<image>\n차트를 봤을 때, 2010년의 \"연평균증가율\" 값은 얼마인가요?"
+                "value": "1.4" : 0.6
+
+        "image": "img_horizontal bar_100per accumulation/C_Source_145133_horizontal bar_100per accumulation.jpg",
+                "value": "<image>\n이 차트에서 \"수도권\" 범례에서 가장 큰 값은 무엇인가요?"
+                "value": "40대, 값: 37.9" : 37
+
+        "image": "img_horizontal bar_accumulation/C_Source_131895_horizontal bar_accumulation.jpg",
+                "value": "<image>\n이 차트에서 \"2006년 7월\" 범례에서 가장 큰 값은 무엇인가요?"
+                "value": "콘크리트, 값: 153" : 155
+
+        "image": "img_horizontal bar_accumulation/C_Source_153287_horizontal bar_accumulation.jpg",
+                "value": "<image>\n이 차트에서 \"수의계약\" 범례에서 가장 큰 값은 무엇인가요?"
+                "value": "1997년 12월, 값: 5539" : 9403
+
+        "image": "img_line_standard/C_Source_148055_line_standard.jpg",
+                "value": "<image>\n차트에서 \"양돈용\" 범례에서 가장 작은 값은 무엇인가요?"
+                "value": "2017, 값: 135977" : 74435
+
+        "image": "img_horizontal bar_standard/C_Source_300269_horizontal bar_standard.jpg",
+                "value": "<image>\n차트에서 \"가출경험 있음\" 범례에서 가장 작은 값은 무엇인가요?"
+                "value": "2018년, 값: 44.7" : 47.6
+
+        "image": "img_pie_standard/C_Source_088188_pie_standard.jpg",
+                "value": "<image>\n차트에서 매우 만족의 비율은 어떻게 되나요?"
+                "value": "차트에서 매우 만족의 비율은 12.7입니다." : 2.1
+
+        "image": "img_vertical bar_100per accumulation/C_Source_217864_vertical bar_100per accumulation.jpg",
+                "value": "<image>\n이 차트에서 \"소득 중층\" 범례에서 가장 큰 값은 무엇인가요?"
+                "value": "이 차트에서 4분기이 가장 크고, 값은 22.3입니다." : 21.4
+
+        "image": "img_pie_standard/C_Source_026937_pie_standard.jpg",
+                "value": "<image>\n차트에서 자동차의 비율은 어떻게 되나요?"
+                "value": "차트에서 자동차의 비율은 29입니다." : 22
+
+    	"image": "img_pie_standard/C_Source_212929_pie_standard.jpg",
+                "value": "<image>\n차트의 범례는 무엇인가요?"
+                "value": "완전 도움, 부분 도움, 완전 자립"
+
+        "image": "img_vertical bar_standard/C_Source_036305_vertical bar_standard.jpg",
+                "value": "<image>\n차트에서 수영의 2019값은 무엇인가요?"
+                "value": "차트에서 수영의 2019값은 9입니다." : 6.2
+
+        "image": "img_vertical bar_standard/C_Source_016191_vertical bar_standard.jpg",
+                "value": "<image>\n차트에서 비원자력관련 기사의 값은 무엇인가요?"
+                "value": "차트에서 비원자력관련 기사의 값은 10284입니다." : 2423
+
+        "image": "img_vertical bar_accumulation/C_Source_238193_vertical bar_accumulation.jpg",
+                "value": "<image>\n차트에서 \"30~49세\" 범례에서 가장 작은 값은 무엇인가요?"
+                "value": "차트에서 하반기이 가장 작고, 값은 75입니다." : 79
+
+        "image": "img_vertical bar_accumulation/C_Source_154545_vertical bar_accumulation.jpg",
+                "value": "<image>\n이 차트에서 \"2019년 10월\" 범례에서 가장 큰 값은 무엇인가요?"
+                "value": "이 차트에서 수의계약이 가장 크고, 값은 5226입니다." : 5220

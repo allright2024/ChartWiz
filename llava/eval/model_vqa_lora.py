@@ -12,6 +12,7 @@ from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_S
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.model import *
 from llava.utils import disable_torch_init
+
 from llava.mm_utils import tokenizer_image_token, process_images, get_model_name_from_path
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
@@ -136,7 +137,7 @@ class CustomDataset(Dataset):
         conv.append_message(conv.roles[1], None)
         prompt = conv.get_prompt()
 
-        image = Image.open(os.path.join(self.image_folder, image_file))
+        image = Image.open(os.path.join(self.image_folder, image_file)).convert('RGB')
         images = [image]
         images = self.image_processor(images=images, text="Generate underlying data table of the figure below:", return_tensors="pt",  max_patches=512)
         

@@ -19,30 +19,33 @@ import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss
 
-from transformers import AutoConfig, AutoModelForCausalLM, AutoModel
+from transformers import AutoConfig, AutoModelForCausalLM
 
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.generation.utils import GenerateOutput
 
+from .modeling_exaone import ExaoneModel, ExaoneForCausalLM
+from .configuration_exaone import ExaoneConfig
+
 from ..llava_arch import LlavaMetaModel, LlavaMetaForCausalLM
 
 
-class LlavaExaoneConfig(AutoConfig):
+class LlavaExaoneConfig(ExaoneConfig):
     model_type = "llava_exaone"
 
 
-class LlavaExaoneModel(LlavaMetaModel, AutoModel):
+class LlavaExaoneModel(LlavaMetaModel, ExaoneModel):
     config_class = LlavaExaoneConfig
 
-    def __init__(self, config: AutoConfig):
+    def __init__(self, config: ExaoneConfig):
         super(LlavaExaoneModel, self).__init__(config)
 
 
-class LlavaExaoneForCausalLM(AutoModelForCausalLM, LlavaMetaForCausalLM):
+class LlavaExaoneForCausalLM(ExaoneForCausalLM, LlavaMetaForCausalLM):
     config_class = LlavaExaoneConfig
 
     def __init__(self, config):
-        super(AutoModelForCausalLM, self).__init__(config)
+        super(ExaoneForCausalLM, self).__init__(config)
         self.model = LlavaExaoneModel(config)
 
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)

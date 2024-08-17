@@ -5,17 +5,17 @@ deepspeed llava/train/train.py \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path /home/work/ai-hub/pretrained_model/maywell/Synatra-7B-v0.3-dpo \
     --version v1 \
-    --data_path /home/work/ai-hub/data/train/json_data/shuffled_summary_QA_all.json \
+    --data_path /home/work/ai-hub/data/train/json_data/train_summary_20k.json \
     --image_folder /home/work/ai-hub/data/train/img_data \
     --vision_tower nuua/ko-deplot \
-    --pretrain_mm_mlp_adapter /home/work/ai-hub/Test_LLaVA/checkpoints/llava-v1.5-7b-pretrain-all-description-with-new-deplot/mm_projector.bin \
+    --pretrain_mm_mlp_adapter /home/work/ai-hub/Test_LLaVA/checkpoints/llava-v1.5-7b-pretrain-all-description-with-new-deplot-final/mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --image_aspect_ratio pad \
     --group_by_modality_length True \
     --bf16 True \
-    --output_dir ./checkpoints/llava_v1.5_7b_synatra_summ_QA_new_deplot \
+    --output_dir ./checkpoints/llava_synatra_7b_mlp2x_summary_20k \
     --num_train_epochs 1 \
     --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 4 \

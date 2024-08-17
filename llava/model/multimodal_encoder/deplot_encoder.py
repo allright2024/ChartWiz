@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from transformers import AutoProcessor, Pix2StructForConditionalGeneration, Pix2StructProcessor, Pix2StructConfig
+from transformers import Pix2StructForConditionalGeneration, Pix2StructProcessor, Pix2StructConfig
 
 
 class DeplotVisionTower(nn.Module):
@@ -11,7 +11,7 @@ class DeplotVisionTower(nn.Module):
         self.is_loaded = False
 
         self.vision_tower_name = vision_tower
-        self.select_layer = args.mm_vision_select_layer
+        # self.select_layer = args.mm_vision_select_layer
         # self.select_feature = getattr(args, 'mm_vision_select_feature', 'patch')
 
         if not delay_load:
@@ -27,11 +27,10 @@ class DeplotVisionTower(nn.Module):
             return
         
         self.vision_tower = Pix2StructForConditionalGeneration.from_pretrained(self.vision_tower_name)
+        self.image_processor = Pix2StructProcessor.from_pretrained(self.vision_tower_name)
         if self.vision_tower_name == "nuua/ko-deplot":
-            self.image_processor = Pix2StructProcessor.from_pretrained(self.vision_tower_name)
             self.vision_tower.load_state_dict(torch.load("/home/work/ai-hub/pretrained_model/vaiv_deplot/deplot_model_ver_kor_24.7.25_refinetuning_epoch3.bin"))
         elif self.vision_tower_name == "ybelkada/pix2struct-base":
-            self.image_processor = AutoProcessor.from_pretrained(self.vision_tower_name)
             self.vision_tower.load_state_dict(torch.load("/home/work/ai-hub/pretrained_model/deplot/deplot_k.pt"))
         
         self.vision_tower = self.vision_tower.encoder

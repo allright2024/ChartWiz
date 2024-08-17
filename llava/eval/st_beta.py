@@ -6,7 +6,7 @@ from tqdm import tqdm
 import shortuuid
 import warnings
 import shutil
-
+import shelve
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig, Pix2StructForConditionalGeneration, AutoProcessor
 from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 from llava.conversation import conv_templates, SeparatorStyle
@@ -16,11 +16,27 @@ from llava.mm_utils import tokenizer_image_token, process_images, get_model_name
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import math
+import time 
+import hashlib
+
 
 import streamlit as st
 
+def get_file_hash(file):
+    file.seek(0)
+    file_bytes = file.read()
+    file.seek(0)  # 파일 포인터를 처음으로 되돌립니다.
+    return hashlib.md5(file_bytes).hexdigest()
+
+st.set_page_config(page_title="ChartWiz", layout="wide")
+
+col1, col2, col3 = st.columns([5, 5, 2])
+
+with col2:
+    st.image("/home/work/ai-hub/Test_LLaVA/llava/eval/chartwiz_logo.png", width=350)
+
 parser = argparse.ArgumentParser()
-parser.add_argument("--model-path", type=str, default="/home/work/ai-hub/Test_LLaVA/checkpoints/llava_v1.5_7b_synatra_summ_QA")
+parser.add_argument("--model-path", type=str, default="/home/work/ai-hub/Test_LLaVA/checkpoints/llava_synatra_description_summary_table_QA_deplot")
 parser.add_argument("--model-base", type=str, default='/home/work/ai-hub/pretrained_model/maywell/Synatra-7B-v0.3-dpo')
 parser.add_argument("--conv-mode", type=str, default="v1")
 parser.add_argument("--num-chunks", type=int, default=1)
@@ -120,7 +136,6 @@ model_path = os.path.expanduser(args.model_path)
 model_name = get_model_name_from_path(model_path)
 tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name)
 
-st.title("Chart.EYE")
 
 def get_response(uploaded_file, user_text):
     # print(user_text)
@@ -155,45 +170,104 @@ def get_response(uploaded_file, user_text):
             use_cache=True)
         
     results = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
+    results = results.replace("\n", "<br/>")
+    time.sleep(1)
     return results
 
 def stream_response(text):
+    # 이 함수는 스트리밍 응답을 처리합니다.
     with st.chat_message("assistant"):
         st.markdown(text)
 
+# 페이지 레이아웃 설정
+
+# 세션 상태 초기화
 if "messages" not in st.session_state:
     st.session_state.messages = []
     st.session_state.image_received = False
-
-uploaded_file = st.file_uploader("이미지를 업로드하세요", type=["jpg", "jpeg", "png"], key="image_uploader")
-
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption='업로드된 이미지', use_column_width=True)
     
-    if not st.session_state.image_received:
-        st.session_state.image_received = True  # 메시지 표시 후 플래그 업데이트
-        response = "차트 이미지를 잘 받았습니다! 질문이 있으신가요?"
-        # print(response)
-        # stream_response(response)
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        
 
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
 
-if uploaded_file is None and st.session_state.messages:
-    st.session_state.image_received = False
-    st.session_state.messages.clear()
-    st.rerun()
+if "image_hash" not in st.session_state:
+    st.session_state["image_hash"] = None
 
-if uploaded_file:
-    if prompt := st.chat_input("질문을 입력하세요"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+if "pending_response" not in st.session_state:
+    st.session_state["pending_response"] = False
 
-        response = get_response(uploaded_file, prompt)
-        stream_response(response)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+
+# 중앙에 제목 배치
+
+# 화면을 두 개의 열로 나눔 (왼쪽: 이미지, 오른쪽: 채팅)
+col1, col2 = st.columns([3, 5])
+
+# 파일 업로드 처리
+with col1:
+    uploaded_file = st.file_uploader("이미지를 업로드하세요", type=["jpg", "jpeg", "png"], key="image_uploader")
+
+    if uploaded_file is not None:
+        current_image_hash = get_file_hash(uploaded_file)
+
+        # 새로운 이미지가 업로드되었을 때 대화 기록 초기화
+        if st.session_state["image_hash"] != current_image_hash:
+            st.session_state["messages"] = []
+            st.session_state["image_hash"] = current_image_hash
+            st.session_state["pending_response"] = False  # 응답 대기 상태 초기화
+
+        image = Image.open(uploaded_file)
+        st.image(image, caption='업로드된 이미지', use_column_width=True)
+    else:
+        st.session_state["image_hash"] = None
+
+with col2:
+    # 채팅 기록을 표시
+    if 'messages' not in st.session_state:
+        st.session_state.messages = []
+                    # <img src='https://cdn-icons-png.flaticon.com/512/1077/1077012.png' style='vertical-align: middle; width: 30px; height: 30px;' />
+                    # <img src='https://cdn-icons-png.flaticon.com/512/6873/6873405.png' style='vertical-align: middle; width: 30px; height: 30px;' />
+
+    def display_chat():
+        for msg in st.session_state.messages:
+            if msg["role"] == "user":
+                st.markdown(f"""
+                <div style='text-align: right; margin-bottom: 30px; margin-right: 50px;'>
+                    <div style='background-color: #f0f0f0; border-radius: 10px; padding: 10px; display: inline-block;'>
+                        <span style='font-size:20px'>{msg['content']}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div style='text-align: left; margin-bottom: 30px; margin-left: 50px; width: 70%'>
+                    <div style = 'color: ; border-radius: 10px; padding: 10px; display: inline-block;'>
+                        <span style='font-size: 20px'>{msg['content']}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    # 채팅 기록 표시
+    display_chat()
+
+    # 채팅 기록이 있을 때 입력 필드 아래로 스크롤하기
+    st.write("###")
+
+
+    # 입력 필드와 전송 버튼을 담을 컨테이너
+    with st.container():
+        col3, col1, col2 = st.columns([1, 15, 2])
+    
+    with col1:
+        prompt = st.text_input("질문을 입력하세요:", key="input", placeholder="여기에 입력하세요...", label_visibility="collapsed")
+    
+    with col2:
+        if st.button("전송") and not st.session_state["pending_response"]:
+            if prompt:
+                st.session_state.messages.append({'role': 'user', 'content': prompt})
+                st.session_state["pending_response"] = True  # 응답 대기 상태 설정
+
+                response = get_response(uploaded_file, prompt)
+                
+                st.session_state.messages.append({'role': 'assistant', 'content': response})
+                st.session_state["pending_response"] = False  # 응답 생성 완료
+                st.experimental_rerun()
+            else:
+                st.write("질문을 입력해 주세요.")

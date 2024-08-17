@@ -146,7 +146,7 @@ def process_anyres_image(image, processor, grid_pinpoints):
 
 
 def load_image_from_base64(image):
-    return Image.open(BytesIO(base64.b64decode(image)))
+    return Image.open(BytesIO(base64.b64decode(image))).convert("RGB")
 
 
 def expand2square(pil_img, background_color):
@@ -164,6 +164,7 @@ def expand2square(pil_img, background_color):
 
 
 def process_images(images, image_processor, model_cfg):
+    # llava-next 적용 코드
     # image_aspect_ratio = getattr(model_cfg, "image_aspect_ratio", None)
     # new_images = []
     # if image_aspect_ratio == 'pad':
