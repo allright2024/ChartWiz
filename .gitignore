@@ -9,6 +9,7 @@ dist
 *.log.*
 *.json
 *.jsonl
+*.out
 
 # Data
 !**/alpaca-data-conversation.json
@@ -26,6 +27,8 @@ logs
 checkpoints
 preprocess_data
 ckpts*
+
+ngrok*
 
 .ipynb_checkpoints
 *.ipynb
