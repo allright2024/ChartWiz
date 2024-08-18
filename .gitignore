@@ -10,6 +10,9 @@ dist
 *.json
 *.jsonl
 *.out
+.nfs*
+chat_history*
+*.txt
 
 # Data
 !**/alpaca-data-conversation.json
@@ -27,6 +30,7 @@ logs
 checkpoints
 preprocess_data
 ckpts*
+tong
 
 ngrok*
 
