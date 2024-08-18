@@ -14,16 +14,16 @@ deepspeed llava/train/train_mem.py \
     --image_aspect_ratio pad \
     --group_by_modality_length True \
     --bf16 True \
-    --output_dir ./checkpoints/llava_v1.5_synatra_1.3b_7_data \
-    --num_train_epochs 2 \
-    --per_device_train_batch_size 8 \
+    --output_dir ./checkpoints/llava_v1.5_synatra_1.3b_3_types_RGB \
+    --num_train_epochs 3 \
+    --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 1 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 50000 \
+    --save_steps 49000 \
     --save_total_limit 1 \
-    --learning_rate 1e-5 \
+    --learning_rate 2e-5 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \

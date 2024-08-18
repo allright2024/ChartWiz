@@ -910,8 +910,7 @@ def train(attn_implementation=None):
             **bnb_model_from_pretrained_args
         )
     elif "exaone" in model_args.model_name_or_path.lower():
-        model = LlavaExaoneForCausalLM.from_pretrained(
-        # model = LlavaLlamaForCausalLM.from_pretrained(                               
+        model = LlavaExaoneForCausalLM.from_pretrained(                             
             model_args.model_name_or_path,
             cache_dir=training_args.cache_dir,
             attn_implementation=attn_implementation,
