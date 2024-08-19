@@ -118,3 +118,32 @@ ChartWiz에서 Pretrain 단계는 Projection Layer를 학습하는 단계이며 
 ### fintuning 데이터 준비 
 finetuning 데이터는 상세 서술, 테이블, 요약, 질의 응답 데이터로 이루어져 있습니다. 
 각각의 데이터는 Instruction-Following 형식으로 정리가 되어야 하는데 이 코드도 마찬가지로 preprocess폴더의 make_finetuning_data.py에 있습니다. 
+
+## 학습 방법
+Pretrain을 통해 Projection Layer를 생성해 줍니다.
+Run
+```
+./scripts/pretrain.sh
+```
+Finetuning을 통해 LLM 학습을 시작하고, Projection Layer를 추가적으로 학습해줍니다.
+```
+./scripts/finetune.sh
+```
+만약 GPU메모리가 부족하다면 LoRA로 학습할 수 있습니다.
+```
+./scripts/finetune_lora.sh
+```
+## 각 결과에 대한 inference
+일반적인 finetuning을 한 경우
+```
+./scripts/infer.sh
+```
+LoRA로 finetuning을 한 경우
+```
+./scripts/lora_infer.sh
+```
+## TEAM
+ChartWiz 프로젝트는 성균관대학교 산학 지도 교수 박희선 교수님과 하계산학 집중 학습 구성원들과 함께 진행했습니다.
+
+
+
