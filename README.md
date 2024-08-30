@@ -9,8 +9,12 @@
 1. Anaconda3로 conda 가상환경 생성
 2. python 버전 : 3.10.12
 3. cuda 버전 : 12.2
-4. cudnn 버전 : 8.9.2
+4. cudnn 버전 : 8.9.2  
 (nvidia docker file : https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-23-09.html)
+
+## Deplot 모델
+Deplot Model은 ai-hub 차트 이미지-텍스트 데이터쌍에서 다운받으실 수 있습니다. (활용 AI 모델 및 코드에서 AI 모델 다운로드를 받으시면 됩니다.)
+https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=data&dataSetSn=71706
 
 ## Install
 1. git clone 이후 ChartWiz 디렉토리로 이동

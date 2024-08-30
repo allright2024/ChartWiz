@@ -7,7 +7,7 @@ deepspeed llava/train/train.py \
     --version v1 \
     --data_path /home/work/ai-hub/data/train/json_data/train_summary_20k.json \
     --image_folder /home/work/ai-hub/data/train/img_data \
-    --vision_tower nuua/ko-deplot \
+    --vision_tower ybelkada/pix2struct-base \
     --pretrain_mm_mlp_adapter /home/work/ai-hub/Test_LLaVA/checkpoints/llava-v1.5-7b-pretrain-all-description-with-new-deplot-final/mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
     --mm_use_im_start_end False \

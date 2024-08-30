@@ -6,7 +6,7 @@ deepspeed llava/train/train_mem.py \
     --version plain \
     --image_folder /home/work/ai-hub/data/train/img_data \
     --data_path /home/work/ai-hub/data/train/json_data/all_table_data_final_shuffled.json \
-    --vision_tower nuua/ko-deplot \
+    --vision_tower ybelkada/pix2struct-base \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
     --mm_use_im_start_end False \

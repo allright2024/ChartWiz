@@ -6,7 +6,7 @@ deepspeed llava/train/train_mem.py \
     --version synatra_mini \
     --data_path /home/work/ai-hub/data/train/json_data/shuffled_desc_summ_table_all.json \
     --image_folder /home/work/ai-hub/data/train/img_data \
-    --vision_tower nuua/ko-deplot \
+    --vision_tower ybelkada/pix2struct-base \
     --pretrain_mm_mlp_adapter /home/work/ai-hub/Test_LLaVA/checkpoints/synatra_1.3b_pretrain/mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
     --mm_use_im_start_end False \
