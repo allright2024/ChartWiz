@@ -147,7 +147,10 @@ LoRA로 finetuning을 한 경우
 ./scripts/lora_infer.sh
 ```
 ## TEAM
-ChartWiz 프로젝트는 성균관대학교 산학 지도 교수 박희선 교수님과 하계산학 집중 학습 구성원들과 함께 진행했습니다.
+ChartWiz 프로젝트는 성균관대학교 산학 지도 교수 박희선 교수님과 하계산학 집중 학습 구성원들과 함께 진행했습니다.  
+김용 : allright2024(팀장 / https://github.com/allright2024)  
+김도현 : bidulki(https://github.com/bidulki)  
+김산 : kimsan1120(https://github.com/kimsan1120)  
 
 
 
