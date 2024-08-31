@@ -1,6 +1,6 @@
 # ChartWiz
 
-- Korean Large Language and Vision Assistant For Chart(feat. LLaVA with Deplot)
+- Korean Large Language and Vision Assistant For Chart(feat. LLaVA with Deplot Encoder)
 - 차트 이미지 기반 질의 응답이 가능한 멀티모달 Chart QA 모델
 ![설명 텍스트](llava/eval/chartwiz_logo.png)
 
@@ -14,7 +14,8 @@
 
 ## Deplot 모델
 Deplot Model은 ai-hub 차트 이미지-텍스트 데이터쌍에서 다운받으실 수 있습니다. (활용 AI 모델 및 코드에서 AI 모델 다운로드를 받으시면 됩니다.)
-https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=data&dataSetSn=71706
+https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=data&dataSetSn=71706  
+Deplot은 Pix2Struct기반으로 image encoder와 text decoder로 이루어져 있으며, 저희 모델은 Deplot의 Image Encoder를 CLIP 대신 사용하였습니다.
 
 ## Install
 1. git clone 이후 ChartWiz 디렉토리로 이동
