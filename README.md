@@ -33,7 +33,7 @@ pip install -e .
 3. 학습을 할 경우 추가 라이브러리 설치
 ```
 pip install -e ".[train]"
-pip install flash-attn --no-bild-isolation
+pip install flash-attn --no-build-isolation
 ```
 
 ## inference
