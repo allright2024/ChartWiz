@@ -800,7 +800,7 @@ class LazySupervisedDataset(Dataset):
             processor = self.data_args.image_processor
             image = Image.open(os.path.join(image_folder, image_file)).convert("RGB")
             if self.model_args.vision_tower == "nuua/ko-deplot":
-                image = processor(images=image, return_tensors="pt", text="Generate underlying data table of the figure below:", max_patches=512)
+                image = processor(images=image, return_tensors="pt", text="Generate underlying data table of the figure below:", max_patches=2048)
             elif self.model_args.vision_tower == "ybelkada/pix2struct-base":
                 image = processor(images=image, return_tensors="pt", max_patches=512)
             
