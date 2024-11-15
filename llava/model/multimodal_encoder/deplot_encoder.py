@@ -29,7 +29,7 @@ class DeplotVisionTower(nn.Module):
         self.vision_tower = Pix2StructForConditionalGeneration.from_pretrained(self.vision_tower_name)
         self.image_processor = Pix2StructProcessor.from_pretrained(self.vision_tower_name)
         if self.vision_tower_name == "nuua/ko-deplot":
-            self.vision_tower.load_state_dict(torch.load("/home/work/ai-hub/pretrained_model/vaiv_deplot/deplot_model_ver_kor_24.7.25_refinetuning_epoch3.bin"))
+            self.vision_tower.load_state_dict(torch.load("/home/work/ko-deplot_finetuning/checkpoint/deplot_model_ver_20.10.19_korean_only_epoch3.bin"))
         elif self.vision_tower_name == "ybelkada/pix2struct-base":
             self.vision_tower.load_state_dict(torch.load("/home/work/ai-hub/pretrained_model/deplot/deplot_k.pt"))
         
